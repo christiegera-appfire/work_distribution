@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tech Comms Work Distribution</title>
+<title>Flexible assignment board</title>
 <style>
 body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#F5F4F0;margin:0;padding:24px;color:#2C2C2A}
 h1{font-size:18px;font-weight:600;margin:0 0 6px}
 p.hint{font-size:13px;color:#888780;margin:0 0 16px}
 #pool{display:flex;flex-wrap:wrap;gap:6px;background:#fff;border:1px solid #D3D1C7;border-radius:10px;padding:10px;margin-bottom:8px}
 .person{background:#E6F1FB;color:#042C53;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:600;cursor:grab;user-select:none}
-#addPersonRow{display:flex;gap:6px;margin-bottom:16px}
+#addPersonRow{display:flex;gap:6px;margin-bottom:16px;align-items:center}
 #addPersonRow input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px;width:160px}
 #addPersonRow button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer;padding:0 10px}
 #board{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;align-items:start}
@@ -44,6 +44,7 @@ p.hint{font-size:13px;color:#888780;margin:0 0 16px}
 <div id="addPersonRow">
 <input id="newPersonInput" placeholder="add a person">
 <button id="addPersonBtn">+ person</button>
+<button id="resetBtn" style="margin-left:auto">Reset to full layout</button>
 </div>
 <div id="board"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -101,6 +102,8 @@ var buckets=[
 {name:"Technical Editor",subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
 ];
 buckets.sort(function(a,b){return a.name.localeCompare(b.name);});
+var defaultPeople=people.slice();
+var defaultBuckets=JSON.parse(JSON.stringify(buckets));
 function renderPool(){
 var pool=document.getElementById("pool");
 pool.innerHTML="";
@@ -282,6 +285,14 @@ people.push(input.value.trim());
 input.value="";
 renderPool();
 }
+};
+document.getElementById("resetBtn").onclick=function(){
+if(!confirm("This overwrites the shared board for everyone with the full default layout. Continue?"))return;
+people=defaultPeople.slice();
+buckets=JSON.parse(JSON.stringify(defaultBuckets));
+suppressPersist=false;
+renderPool();
+renderBoard();
 };
 renderPool();
 renderBoard();
