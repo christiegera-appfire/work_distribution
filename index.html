@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tech Comms Work Distribution</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#F5F4F0;margin:0;padding:24px;color:#2C2C2A}
+h1{font-size:18px;font-weight:600;margin:0 0 6px}
+p.hint{font-size:13px;color:#888780;margin:0 0 16px}
+#pool{display:flex;flex-wrap:wrap;gap:6px;background:#fff;border:1px solid #D3D1C7;border-radius:10px;padding:10px;margin-bottom:8px}
+.person{background:#E6F1FB;color:#042C53;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:600;cursor:grab;user-select:none}
+#addPersonRow{display:flex;gap:6px;margin-bottom:16px}
+#addPersonRow input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px;width:160px}
+#addPersonRow button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer;padding:0 10px}
+#board{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;align-items:start}
+.col{background:#EDEBE3;border-radius:12px;padding:10px}
+.col h3{font-size:14px;font-weight:600;margin:0 0 8px;word-break:break-word;cursor:grab}
+.col.colDragOver{outline:2px dashed #993C1D}
+.subgroup{background:#fff;border:1px solid #D3D1C7;border-radius:8px;padding:6px;margin-bottom:8px}
+.subgroup h4{font-size:11px;font-weight:600;color:#5F5E5A;margin:0 0 6px;text-transform:uppercase}
+.dropzone.dragover{outline:2px dashed #387BFE}
+.chip{background:#F1EFE8;border:1px solid #D3D1C7;border-radius:8px;padding:4px 8px;margin-bottom:6px;font-size:13px}
+.subgroup .chip{background:#fff}
+.chip .row{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.chip .role-badge{font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border-radius:8px;padding:1px 6px}
+.chip .role-none{color:#888780;background:#F1EFE8}
+.chip .role-lead{color:#412402;background:#FAEEDA}
+.chip .role-backup{color:#042C53;background:#E6F1FB}
+.chip .x{cursor:pointer;color:#888780;font-weight:700;padding:0 2px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{background:#FAEEDA;color:#412402;border-radius:8px;padding:1px 6px;font-size:11px;display:flex;align-items:center;gap:3px}
+.tag .x{color:#412402;font-size:11px}
+.tagInput{font-size:11px;height:22px;border-radius:6px;border:1px solid #D3D1C7;padding:0 6px;width:100%;margin-top:4px;box-sizing:border-box}
+.colremove{float:right;cursor:pointer;color:#888780;font-size:13px}
+#addBucket{display:flex;flex-direction:column;gap:6px}
+#addBucket input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px}
+#addBucket button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>Flexible assignment board</h1>
+<p class="hint">Live synced — changes you or Mark make appear for both of you within a second or two. Drag a person from the pool into any box (they stay in the pool, so the same person can go into several apps or subcategories). Drag a column's title to reorder columns. Click the gray "set role" badge to cycle none to lead to backup. In Innovate team, type an app name and hit enter to tag what each person writes for.</p>
+<div id="pool"></div>
+<div id="addPersonRow">
+<input id="newPersonInput" placeholder="add a person">
+<button id="addPersonBtn">+ person</button>
+</div>
+<div id="board"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+var firebaseConfig={
+apiKey:"AIzaSyCJ6Y99PPZL34a7p7bJRnLZep-IVrz3E1g",
+authDomain:"techdocs-site.firebaseapp.com",
+databaseURL:"https://techdocs-site-default-rtdb.firebaseio.com",
+projectId:"techdocs-site",
+storageBucket:"techdocs-site.firebasestorage.app",
+messagingSenderId:"273885071372",
+appId:"1:273885071372:web:77f70bf71d277aab678629"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.database();
+var boardRef=db.ref("board");
+var suppressPersist=true;
+function persist(){
+if(suppressPersist)return;
+boardRef.set({people:people,buckets:buckets});
+}
+</script>
+<script>
+var people=["Christie","Anna","Aggie","Magda","Piotr","Praveena","Nisha","Derya","Dan","Deborah","Kasia","Stanley","Mark","Jeff","Sneha"];
+var buckets=[
+{name:"CDM",subs:[{sub:null,people:[{name:"Praveena",role:"lead",apps:[]},{name:"Nisha",role:"backup",apps:[]}]}]},
+{name:"Advanced Tables",subs:[{sub:null,people:[{name:"Nisha",role:"lead",apps:[]},{name:"Praveena",role:"backup",apps:[]}]}]},
+{name:"BigPicture",subs:[{sub:null,people:[{name:"Anna",role:null,apps:[]},{name:"Aggie",role:null,apps:[]},{name:"Magda",role:null,apps:[]},{name:"Piotr",role:null,apps:[]}]}]},
+{name:"7pace",subs:[{sub:null,people:[{name:"Piotr",role:null,apps:[]}]}]},
+{name:"Planning Poker ADO",subs:[{sub:null,people:[]}]},
+{name:"JXL",subs:[{sub:null,people:[]}]},
+{name:"KM Blueprint",subs:[{sub:null,people:[]}]},
+{name:"JMWE",subs:[{sub:null,people:[]}]},
+{name:"JSU",subs:[{sub:null,people:[]}]},
+{name:"Time to SLA",subs:[{sub:null,people:[]}]},
+{name:"ITSM Blueprint",subs:[{sub:null,people:[]}]},
+{name:"Innovate team",detailField:true,subs:[{sub:null,people:[
+{name:"Derya",role:"lead",apps:["Backlog Zero","Live Risk"]},
+{name:"Dan",role:null,apps:["Backlog Zero","Live Risk"]},
+{name:"Stanley",role:null,apps:["Live Risk"]},
+{name:"Jeff",role:null,apps:["Decisions"]},
+{name:"Deborah",role:null,apps:["Signal IQ"]}
+]}]},
+{name:"Rich Filters",subs:[{sub:null,people:[]}]},
+{name:"Dashboard Hub",subs:[{sub:null,people:[]}]},
+{name:"Connector SF and Jira",subs:[{sub:null,people:[]}]},
+{name:"CMJ",subs:[{sub:null,people:[{name:"Stanley",role:"lead",apps:[]}]}]},
+{name:"Migration",subs:[{sub:null,people:[]}]},
+{name:"Power Scripts",subs:[{sub:null,people:[]}]},
+{name:"JQL Search Extensions",subs:[{sub:null,people:[]}]},
+{name:"JMCF",subs:[{sub:null,people:[]}]},
+{name:"Core",subs:[{sub:"Release notes",people:[]},{sub:"Doc updates",people:[]}]},
+{name:"Video content",subs:[{sub:null,people:[{name:"Magda",role:null,apps:[]},{name:"Jeff",role:null,apps:[]}]}]},
+{name:"Technical Editor",subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
+];
+buckets.sort(function(a,b){return a.name.localeCompare(b.name);});
+function renderPool(){
+var pool=document.getElementById("pool");
+pool.innerHTML="";
+people.forEach(function(name){
+var el=document.createElement("div");
+el.className="person";
+el.textContent=name;
+el.draggable=true;
+el.ondragstart=function(e){e.dataTransfer.setData("text/plain",name);};
+pool.appendChild(el);
+});
+persist();
+}
+function renderChip(p,list,pi,detailField){
+var chip=document.createElement("div");
+chip.className="chip";
+var row=document.createElement("div");
+row.className="row";
+var left=document.createElement("span");
+left.textContent=p.name;
+row.appendChild(left);
+var right=document.createElement("span");
+right.style.display="flex";
+right.style.alignItems="center";
+right.style.gap="4px";
+var role=document.createElement("span");
+function labelFor(r){return r==="lead"?"Lead":r==="backup"?"Backup":"set role";}
+function classFor(r){return r==="lead"?"role-lead":r==="backup"?"role-backup":"role-none";}
+role.className="role-badge "+classFor(p.role);
+role.textContent=labelFor(p.role);
+role.onclick=function(){
+p.role=p.role==="lead"?"backup":p.role==="backup"?null:"lead";
+renderBoard();
+};
+right.appendChild(role);
+var x=document.createElement("span");
+x.className="x";
+x.textContent="\u00d7";
+x.onclick=function(){list.splice(pi,1);renderBoard();};
+right.appendChild(x);
+row.appendChild(right);
+chip.appendChild(row);
+if(detailField){
+if(!p.apps)p.apps=[];
+var tags=document.createElement("div");
+tags.className="tags";
+p.apps.forEach(function(a,ai){
+var tag=document.createElement("span");
+tag.className="tag";
+var tl=document.createElement("span");
+tl.textContent=a;
+tag.appendChild(tl);
+var tx=document.createElement("span");
+tx.className="x";
+tx.textContent="\u00d7";
+tx.onclick=function(){p.apps.splice(ai,1);renderBoard();};
+tag.appendChild(tx);
+tags.appendChild(tag);
+});
+chip.appendChild(tags);
+var input=document.createElement("input");
+input.className="tagInput";
+input.placeholder="add app, enter";
+input.onkeydown=function(e){
+if(e.key==="Enter"&&input.value.trim()){
+p.apps.push(input.value.trim());
+renderBoard();
+}
+};
+chip.appendChild(input);
+}
+return chip;
+}
+function attachPersonDrop(el,list,detailField){
+el.ondragover=function(e){e.preventDefault();e.stopPropagation();el.classList.add("dragover");};
+el.ondragleave=function(){el.classList.remove("dragover");};
+el.ondrop=function(e){
+e.preventDefault();
+e.stopPropagation();
+el.classList.remove("dragover");
+var name=e.dataTransfer.getData("text/plain");
+if(!name)return;
+var exists=list.some(function(p){return p.name===name;});
+if(!exists){list.push({name:name,role:null,apps:[]});renderBoard();}
+};
+}
+function attachColDrop(col,bucket,bi){
+col.ondragover=function(e){
+e.preventDefault();
+col.classList.add("colDragOver");
+};
+col.ondragleave=function(){col.classList.remove("colDragOver");};
+col.ondrop=function(e){
+e.preventDefault();
+col.classList.remove("colDragOver");
+var types=Array.prototype.slice.call(e.dataTransfer.types);
+if(types.indexOf("application/col-index")!==-1){
+var srcIdx=parseInt(e.dataTransfer.getData("application/col-index"),10);
+if(!isNaN(srcIdx)&&srcIdx!==bi){
+var moved=buckets.splice(srcIdx,1)[0];
+var targetIdx=bi>srcIdx?bi-1:bi;
+buckets.splice(targetIdx,0,moved);
+renderBoard();
+}
+return;
+}
+if(bucket.subs.length===1&&bucket.subs[0].sub===null){
+var name=e.dataTransfer.getData("text/plain");
+if(!name)return;
+var list=bucket.subs[0].people;
+var exists=list.some(function(p){return p.name===name;});
+if(!exists){list.push({name:name,role:null,apps:[]});renderBoard();}
+}
+};
+}
+function renderBoard(){
+var board=document.getElementById("board");
+board.innerHTML="";
+buckets.forEach(function(bucket,bi){
+var col=document.createElement("div");
+col.className="col dropzone";
+attachColDrop(col,bucket,bi);
+var h=document.createElement("h3");
+h.textContent=bucket.name;
+h.draggable=true;
+h.ondragstart=function(e){
+e.stopPropagation();
+e.dataTransfer.setData("application/col-index",String(bi));
+e.dataTransfer.effectAllowed="move";
+};
+var rm=document.createElement("span");
+rm.className="colremove";
+rm.textContent="\u00d7";
+rm.title="remove column";
+rm.onclick=function(){buckets.splice(bi,1);renderBoard();};
+h.appendChild(rm);
+col.appendChild(h);
+if(bucket.subs.length===1&&bucket.subs[0].sub===null){
+bucket.subs[0].people.forEach(function(p,pi){
+col.appendChild(renderChip(p,bucket.subs[0].people,pi,!!bucket.detailField));
+});
+}else{
+bucket.subs.forEach(function(group){
+var g=document.createElement("div");
+g.className="subgroup dropzone";
+attachPersonDrop(g,group.people,!!bucket.detailField);
+var gh=document.createElement("h4");
+gh.textContent=group.sub;
+g.appendChild(gh);
+group.people.forEach(function(p,pi){
+g.appendChild(renderChip(p,group.people,pi,!!bucket.detailField));
+});
+col.appendChild(g);
+});
+}
+board.appendChild(col);
+});
+var addCol=document.createElement("div");
+addCol.id="addBucket";
+var input=document.createElement("input");
+input.placeholder="new app or task name";
+var btn=document.createElement("button");
+btn.textContent="+ add column";
+btn.onclick=function(){
+if(input.value.trim()){
+buckets.push({name:input.value.trim(),subs:[{sub:null,people:[]}]});
+renderBoard();
+}
+};
+addCol.appendChild(input);
+addCol.appendChild(btn);
+board.appendChild(addCol);
+persist();
+}
+document.getElementById("addPersonBtn").onclick=function(){
+var input=document.getElementById("newPersonInput");
+if(input.value.trim()){
+people.push(input.value.trim());
+input.value="";
+renderPool();
+}
+};
+renderPool();
+renderBoard();
+boardRef.on("value",function(snapshot){
+var val=snapshot.val();
+suppressPersist=true;
+if(val&&val.people&&val.buckets){
+people=val.people;
+buckets=val.buckets;
+}
+renderPool();
+renderBoard();
+suppressPersist=false;
+if(!val){
+persist();
+}
+});
+</script>
+</body>
+</html>
