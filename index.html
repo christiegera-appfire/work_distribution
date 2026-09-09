@@ -102,6 +102,21 @@ var buckets=[
 {name:"Technical Editor",subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
 ];
 buckets.sort(function(a,b){return a.name.localeCompare(b.name);});
+function normalize(bks){
+if(!Array.isArray(bks))return[];
+bks.forEach(function(b){
+if(!Array.isArray(b.subs)||b.subs.length===0)b.subs=[{sub:null,people:[]}];
+b.subs.forEach(function(g){
+if(!Array.isArray(g.people))g.people=[];
+g.people.forEach(function(p){
+if(!Array.isArray(p.apps))p.apps=[];
+if(!p.role)p.role=null;
+});
+});
+});
+return bks;
+}
+buckets=normalize(buckets);
 var defaultPeople=people.slice();
 var defaultBuckets=JSON.parse(JSON.stringify(buckets));
 function renderPool(){
@@ -210,9 +225,10 @@ renderBoard();
 }
 return;
 }
-if(bucket.subs.length===1&&bucket.subs[0].sub===null){
+if(bucket.subs.length===1&&!bucket.subs[0].sub){
 var name=e.dataTransfer.getData("text/plain");
 if(!name)return;
+if(!Array.isArray(bucket.subs[0].people))bucket.subs[0].people=[];
 var list=bucket.subs[0].people;
 var exists=list.some(function(p){return p.name===name;});
 if(!exists){list.push({name:name,role:null,apps:[]});renderBoard();}
@@ -241,14 +257,15 @@ rm.title="remove column";
 rm.onclick=function(){buckets.splice(bi,1);renderBoard();};
 h.appendChild(rm);
 col.appendChild(h);
-if(bucket.subs.length===1&&bucket.subs[0].sub===null){
-bucket.subs[0].people.forEach(function(p,pi){
+if(bucket.subs.length===1&&!bucket.subs[0].sub){
+(bucket.subs[0].people||[]).forEach(function(p,pi){
 col.appendChild(renderChip(p,bucket.subs[0].people,pi,!!bucket.detailField));
 });
 }else{
 bucket.subs.forEach(function(group){
 var g=document.createElement("div");
 g.className="subgroup dropzone";
+if(!Array.isArray(group.people))group.people=[];
 attachPersonDrop(g,group.people,!!bucket.detailField);
 var gh=document.createElement("h4");
 gh.textContent=group.sub;
@@ -301,7 +318,7 @@ var val=snapshot.val();
 suppressPersist=true;
 if(val&&val.people&&val.buckets){
 people=val.people;
-buckets=val.buckets;
+buckets=normalize(val.buckets);
 }
 renderPool();
 renderBoard();
