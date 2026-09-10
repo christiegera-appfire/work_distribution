@@ -241,13 +241,34 @@ var col=document.createElement("div");
 col.className="col dropzone"+(bucket.isRole?" roleCol":"");
 attachColDrop(col,bucket,bi);
 var h=document.createElement("h3");
-h.textContent=bucket.name;
 h.draggable=true;
 h.ondragstart=function(e){
 e.stopPropagation();
 e.dataTransfer.setData("application/col-index",String(bi));
 e.dataTransfer.effectAllowed="move";
 };
+var nameSpan=document.createElement("span");
+nameSpan.textContent=bucket.name;
+nameSpan.title="click to rename";
+nameSpan.style.cursor="text";
+nameSpan.onclick=function(ev){
+ev.stopPropagation();
+var input=document.createElement("input");
+input.value=bucket.name;
+input.style.cssText="font-size:14px;font-weight:600;width:100%;border:1px solid #B4B2A9;border-radius:6px;padding:2px 4px;box-sizing:border-box";
+input.draggable=false;
+function commit(){
+if(input.value.trim())bucket.name=input.value.trim();
+renderBoard();
+}
+input.onkeydown=function(ev2){if(ev2.key==="Enter"){commit();}};
+input.onblur=commit;
+input.onclick=function(ev3){ev3.stopPropagation();};
+h.replaceChild(input,nameSpan);
+input.focus();
+input.select();
+};
+h.appendChild(nameSpan);
 var rm=document.createElement("span");
 rm.className="colremove";
 rm.textContent="\u00d7";
