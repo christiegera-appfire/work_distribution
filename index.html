@@ -45,6 +45,12 @@ p.hint{font-family:var(--af-font);font-weight:500;font-size:12px;line-height:1.5
 #addPersonRow{display:flex;gap:6px;margin-bottom:16px;align-items:center}
 #addPersonRow input{font-family:var(--af-font);font-size:12.5px;height:28px;border-radius:var(--af-radius-round);border:1px solid var(--af-line);padding:0 12px;width:150px}
 #board{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:start}
+#roleBox:empty{display:none}
+#roleBox{margin-top:18px;border:1px solid #D9C9FA;border-radius:12px;padding:14px;background:#FBFAFF}
+.roleBoxLabel{font-family:var(--af-font);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#654B99;margin-bottom:10px}
+#roleGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:start}
+.roleToggle{font-family:var(--af-font);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#B7B2A6;cursor:pointer;padding:1px 5px;border:1px solid #E4E1D9;border-radius:4px;white-space:nowrap;align-self:flex-start}
+.roleToggle:hover{color:#654B99;border-color:#D9C9FA}
 .col{background:var(--af-card);border-radius:var(--af-radius-card);padding:11px;border:1px solid var(--af-line);position:relative;box-shadow:var(--af-shadow)}
 .col.roleCol{border-left:3px solid var(--af-purple-border);background:var(--af-purple-soft)}
 .col h3{font-family:var(--af-font);font-size:13px;font-weight:600;margin:0 0 9px;word-break:break-word;cursor:grab;color:var(--af-fg);display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
@@ -83,15 +89,21 @@ p.hint{font-family:var(--af-font);font-weight:500;font-size:12px;line-height:1.5
 .p-wrap{width:1900px;padding:36px;background:#fff;font-family:var(--af-font);box-sizing:border-box}
 .p-h1{font-size:26px;font-weight:800;margin:0 0 4px;color:#090A0F}
 .p-sub{font-size:13px;color:#5C5B5E;margin:0 0 22px}
-.p-grid{overflow:hidden}
-.p-card{float:left;width:23%;margin:0 1.3% 20px 0;background:#fff;border:1px solid #E6E3EC;border-radius:16px;padding:15px;box-sizing:border-box}
+.p-section{margin-bottom:8px}
+.p-sectionhead{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#8A888E;margin:0 0 12px;padding-top:6px;border-top:1px solid #E6E3EC}
+.p-section:first-child .p-sectionhead{border-top:none;padding-top:0}
+.p-rolebox{border:1.5px solid #DDCBFF;border-radius:16px;background:#FBFAFF;padding:18px;margin-top:6px}
+.p-roleheading{border-top:none;padding-top:0;color:#654B99;margin-bottom:14px}
+.p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.p-card{display:flex;flex-direction:column;background:#fff;border:1px solid #E6E3EC;border-radius:16px;padding:15px;box-sizing:border-box}
 .p-card.p-role{border-left:4px solid #A97DFF;background:#FBFAFF}
 .p-cardhead{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;color:#090A0F;margin-bottom:11px}
 .p-icontile{width:26px;height:26px;border-radius:7px;color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.p-dotted{border:1.5px dashed #C9C6D0;border-radius:12px;padding:13px 9px;display:flex;flex-wrap:wrap;gap:14px;background:#FCFCFD}
+.p-dotted{flex:1;border:1.5px dashed #C9C6D0;border-radius:12px;padding:13px 9px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:14px;background:#FCFCFD}
 .p-dotted.p-small{padding:9px 7px;gap:11px}
-.p-dotted.p-empty{color:#ADA9B5;font-style:italic;font-size:12px;justify-content:center;padding:15px}
+.p-dotted.p-empty{color:#ADA9B5;font-style:italic;font-size:12px;justify-content:center;align-items:center;padding:15px}
 .p-emptysmall{color:#ADA9B5;font-style:italic;font-size:11px;padding:5px}
+.p-subswrap{flex:1;display:flex;flex-direction:column}
 .p-subwrap{margin-bottom:9px;width:100%}
 .p-subwrap:last-child{margin-bottom:0}
 .p-sublabel{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8A888E;margin-bottom:5px}
@@ -119,6 +131,7 @@ p.hint{font-family:var(--af-font);font-weight:500;font-size:12px;line-height:1.5
 <button id="resetBtn" style="margin-left:auto">Reset to full layout</button>
 </div>
 <div id="board"></div>
+<div id="roleBox"></div>
 <div id="posterCapture"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -169,7 +182,8 @@ var buckets=[
 {name:"JQL Search Extensions",subs:[{sub:null,people:[]}]},
 {name:"JMCF",subs:[{sub:null,people:[]}]},
 {name:"Core",subs:[{sub:"Release notes",people:[]},{sub:"Doc updates",people:[]}]},
-{name:"Video content",isRole:true,subs:[{sub:null,people:[{name:"Magda",role:null,apps:[]},{name:"Jeff",role:null,apps:[]}]}]},
+{name:"Video Publishing",isRole:true,subs:[{sub:null,people:[{name:"Magda",role:null,apps:[]},{name:"Jeff",role:null,apps:[]}]}]},
+{name:"Video Float",isRole:true,subs:[{sub:null,people:[{name:"Sneha",role:"lead",apps:[]}]}]},
 {name:"Technical Editor",isRole:true,subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
 ];
 buckets.sort(function(a,b){return a.name.localeCompare(b.name);});
@@ -277,7 +291,7 @@ var exists=list.some(function(p){return p.name===name;});
 if(!exists){list.push({name:name,role:null,apps:[]});renderBoard();}
 };
 }
-function attachColDrop(col,bucket,bi){
+function attachColDrop(col,bucket,bi,reorderable){
 col.ondragover=function(e){
 e.preventDefault();
 col.classList.add("colDragOver");
@@ -287,7 +301,7 @@ col.ondrop=function(e){
 e.preventDefault();
 col.classList.remove("colDragOver");
 var types=Array.prototype.slice.call(e.dataTransfer.types);
-if(types.indexOf("application/col-index")!==-1){
+if(reorderable&&types.indexOf("application/col-index")!==-1){
 var srcIdx=parseInt(e.dataTransfer.getData("application/col-index"),10);
 if(!isNaN(srcIdx)&&srcIdx!==bi){
 var moved=buckets.splice(srcIdx,1)[0];
@@ -318,17 +332,56 @@ renderAppView(board);
 persist();
 }
 function renderAppView(board){
-buckets.forEach(function(bucket,bi){
+var roleBox=document.getElementById("roleBox");
+roleBox.innerHTML="";
+var normalBuckets=buckets.filter(function(b){return !b.isRole;});
+var roleBuckets=buckets.filter(function(b){return b.isRole;}).sort(function(a,b2){return a.name.localeCompare(b2.name);});
+normalBuckets.forEach(function(bucket){
+var bi=buckets.indexOf(bucket);
+board.appendChild(renderColumn(bucket,bi,true));
+});
+var addCol=document.createElement("div");
+addCol.id="addBucket";
+var input=document.createElement("input");
+input.placeholder="new app or task name";
+var btn=document.createElement("button");
+btn.textContent="+ add column";
+btn.onclick=function(){
+if(input.value.trim()){
+buckets.push({name:input.value.trim(),subs:[{sub:null,people:[]}]});
+renderBoard();
+}
+};
+addCol.appendChild(input);
+addCol.appendChild(btn);
+board.appendChild(addCol);
+if(roleBuckets.length){
+var label=document.createElement("div");
+label.className="roleBoxLabel";
+label.textContent="Team roles \u2014 fixed, not reordered";
+roleBox.appendChild(label);
+var roleGrid=document.createElement("div");
+roleGrid.id="roleGrid";
+roleBuckets.forEach(function(bucket){
+var bi=buckets.indexOf(bucket);
+roleGrid.appendChild(renderColumn(bucket,bi,false));
+});
+roleBox.appendChild(roleGrid);
+}
+}
+function renderColumn(bucket,bi,reorderable){
 var col=document.createElement("div");
 col.className="col dropzone"+(bucket.isRole?" roleCol":"");
-attachColDrop(col,bucket,bi);
+attachColDrop(col,bucket,bi,reorderable);
 var h=document.createElement("h3");
+if(reorderable){
 h.draggable=true;
 h.ondragstart=function(e){
 e.stopPropagation();
 e.dataTransfer.setData("application/col-index",String(bi));
 e.dataTransfer.effectAllowed="move";
 };
+}
 var nameSpan=document.createElement("span");
 nameSpan.textContent=bucket.name;
 nameSpan.title="click to rename";
@@ -351,12 +404,27 @@ input.focus();
 input.select();
 };
 h.appendChild(nameSpan);
+nameSpan.style.flex="1";
+nameSpan.style.minWidth="0";
+var headerRight=document.createElement("span");
+headerRight.style.cssText="display:flex;align-items:center;gap:5px;flex-shrink:0";
+var roleToggle=document.createElement("span");
+roleToggle.className="roleToggle";
+roleToggle.textContent=bucket.isRole?"role":"app";
+roleToggle.title="click to switch between app and role";
+roleToggle.onclick=function(ev){
+ev.stopPropagation();
+bucket.isRole=!bucket.isRole;
+renderBoard();
+};
+headerRight.appendChild(roleToggle);
 var rm=document.createElement("span");
 rm.className="colremove";
 rm.textContent="\u00d7";
 rm.title="remove column";
 rm.onclick=function(){buckets.splice(bi,1);renderBoard();};
-h.appendChild(rm);
+headerRight.appendChild(rm);
+h.appendChild(headerRight);
 col.appendChild(h);
 if(bucket.subs.length===1&&!bucket.subs[0].sub){
 (bucket.subs[0].people||[]).forEach(function(p,pi){
@@ -377,25 +445,10 @@ g.appendChild(renderChip(p,group.people,pi,!!bucket.detailField));
 col.appendChild(g);
 });
 }
-board.appendChild(col);
-});
-var addCol=document.createElement("div");
-addCol.id="addBucket";
-var input=document.createElement("input");
-input.placeholder="new app or task name";
-var btn=document.createElement("button");
-btn.textContent="+ add column";
-btn.onclick=function(){
-if(input.value.trim()){
-buckets.push({name:input.value.trim(),subs:[{sub:null,people:[]}]});
-renderBoard();
-}
-};
-addCol.appendChild(input);
-addCol.appendChild(btn);
-board.appendChild(addCol);
+return col;
 }
 function renderPersonView(board){
+document.getElementById("roleBox").innerHTML="";
 people.forEach(function(name){
 var card=document.createElement("div");
 card.className="personCard";
@@ -487,8 +540,7 @@ else if(p.role==="backup")pills.push('<span class="p-pill p-backup">Backup</span
 var tagblock=pills.length?('<div class="p-pillrow">'+pills.join("<br>")+'</div>'):'';
 return '<div class="p-pblock"><div class="p-avatar" style="background:'+bg+';box-shadow:0 0 0 3px #fff,0 0 0 5px '+ring+'">'+posterInitials(p.name)+'</div><div class="p-pname">'+p.name+'</div>'+tagblock+'</div>';
 }
-function buildPosterHTML(){
-var cardsHtml=buckets.map(function(b){
+function posterCardHTML(b){
 var isRole=!!b.isRole;
 var icon=posterIconTile(b.name,isRole);
 var box;
@@ -496,16 +548,21 @@ if(b.subs.length===1&&!b.subs[0].sub){
 var ppl=b.subs[0].people||[];
 box=ppl.length?('<div class="p-dotted">'+ppl.map(posterPersonBlock).join("")+'</div>'):'<div class="p-dotted p-empty">unassigned</div>';
 }else{
-box=b.subs.map(function(g){
+box='<div class="p-subswrap">'+b.subs.map(function(g){
 var gp=g.people||[];
 var inner=gp.length?gp.map(posterPersonBlock).join(""):'<div class="p-emptysmall">unassigned</div>';
 return '<div class="p-subwrap"><div class="p-sublabel">'+(g.sub||"")+'</div><div class="p-dotted p-small">'+inner+'</div></div>';
-}).join("");
+}).join("")+'</div>';
 }
 return '<div class="p-card'+(isRole?" p-role":"")+'"><div class="p-cardhead">'+icon+'<span>'+b.name+'</span></div>'+box+'</div>';
-}).join("");
+}
+function buildPosterHTML(){
+var appBuckets=buckets.filter(function(b){return !b.isRole;}).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+var roleBuckets=buckets.filter(function(b){return b.isRole;}).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+var appsHtml='<div class="p-section"><div class="p-sectionhead">Apps</div><div class="p-grid">'+appBuckets.map(posterCardHTML).join("")+'</div></div>';
+var rolesHtml=roleBuckets.length?('<div class="p-rolebox"><div class="p-sectionhead p-roleheading">Team roles</div><div class="p-grid">'+roleBuckets.map(posterCardHTML).join("")+'</div></div>'):'';
 var dateStr=new Date().toLocaleDateString();
-return '<div class="p-wrap"><h1 class="p-h1">Tech Comms &mdash; app &amp; role assignments</h1><p class="p-sub">Generated '+dateStr+'</p><div class="p-grid">'+cardsHtml+'</div></div>';
+return '<div class="p-wrap"><h1 class="p-h1">Tech Comms &mdash; app &amp; role assignments</h1><p class="p-sub">Generated '+dateStr+'</p>'+appsHtml+rolesHtml+'</div>';
 }
 document.getElementById("downloadImgBtn").onclick=function(){
 var container=document.getElementById("posterCapture");
