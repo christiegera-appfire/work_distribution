@@ -14,6 +14,7 @@ p.hint{font-size:13px;color:#888780;margin:0 0 16px}
 #addPersonRow button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer;padding:0 10px}
 #board{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;align-items:start}
 .col{background:#EDEBE3;border-radius:12px;padding:10px}
+.col.roleCol{background:#E9E3FB;border:1px solid #C9B8F5}
 .col h3{font-size:14px;font-weight:600;margin:0 0 8px;word-break:break-word;cursor:grab}
 .col.colDragOver{outline:2px dashed #993C1D}
 .subgroup{background:#fff;border:1px solid #D3D1C7;border-radius:8px;padding:6px;margin-bottom:8px}
@@ -77,11 +78,9 @@ var buckets=[
 {name:"7pace",subs:[{sub:null,people:[{name:"Piotr",role:null,apps:[]}]}]},
 {name:"Planning Poker ADO",subs:[{sub:null,people:[]}]},
 {name:"JXL",subs:[{sub:null,people:[]}]},
-{name:"KM Blueprint",subs:[{sub:null,people:[]}]},
 {name:"JMWE",subs:[{sub:null,people:[]}]},
 {name:"JSU",subs:[{sub:null,people:[]}]},
 {name:"Time to SLA",subs:[{sub:null,people:[]}]},
-{name:"ITSM Blueprint",subs:[{sub:null,people:[]}]},
 {name:"Innovate team",detailField:true,subs:[{sub:null,people:[
 {name:"Derya",role:"lead",apps:["Backlog Zero","Live Risk"]},
 {name:"Dan",role:null,apps:["Backlog Zero","Live Risk"]},
@@ -93,13 +92,12 @@ var buckets=[
 {name:"Dashboard Hub",subs:[{sub:null,people:[]}]},
 {name:"Connector SF and Jira",subs:[{sub:null,people:[]}]},
 {name:"CMJ",subs:[{sub:null,people:[{name:"Stanley",role:"lead",apps:[]}]}]},
-{name:"Migration",subs:[{sub:null,people:[]}]},
 {name:"Power Scripts",subs:[{sub:null,people:[]}]},
 {name:"JQL Search Extensions",subs:[{sub:null,people:[]}]},
 {name:"JMCF",subs:[{sub:null,people:[]}]},
 {name:"Core",subs:[{sub:"Release notes",people:[]},{sub:"Doc updates",people:[]}]},
-{name:"Video content",subs:[{sub:null,people:[{name:"Magda",role:null,apps:[]},{name:"Jeff",role:null,apps:[]}]}]},
-{name:"Technical Editor",subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
+{name:"Video content",isRole:true,subs:[{sub:null,people:[{name:"Magda",role:null,apps:[]},{name:"Jeff",role:null,apps:[]}]}]},
+{name:"Technical Editor",isRole:true,subs:[{sub:null,people:[{name:"Jeff",role:null,apps:[]}]}]}
 ];
 buckets.sort(function(a,b){return a.name.localeCompare(b.name);});
 function normalize(bks){
@@ -240,7 +238,7 @@ var board=document.getElementById("board");
 board.innerHTML="";
 buckets.forEach(function(bucket,bi){
 var col=document.createElement("div");
-col.className="col dropzone";
+col.className="col dropzone"+(bucket.isRole?" roleCol":"");
 attachColDrop(col,bucket,bi);
 var h=document.createElement("h3");
 h.textContent=bucket.name;
