@@ -45,6 +45,10 @@ p.hint{font-family:var(--af-font);font-weight:500;font-size:12px;line-height:1.5
 #addPersonRow{display:flex;gap:6px;margin-bottom:16px;align-items:center}
 #addPersonRow input{font-family:var(--af-font);font-size:12.5px;height:28px;border-radius:var(--af-radius-round);border:1px solid var(--af-line);padding:0 12px;width:150px}
 #board{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:start}
+#roleBox:empty{display:none}
+#roleBox{margin-top:18px;border:1px solid #D9C9FA;border-radius:12px;padding:14px;background:#FBFAFF}
+.roleBoxLabel{font-family:var(--af-font);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#654B99;margin-bottom:10px}
+#roleGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:start}
 .roleToggle{font-family:var(--af-font);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#B7B2A6;cursor:pointer;padding:1px 5px;border:1px solid #E4E1D9;border-radius:4px;white-space:nowrap;align-self:flex-start}
 .roleToggle:hover{color:#654B99;border-color:#D9C9FA}
 .col{background:var(--af-card);border-radius:var(--af-radius-card);padding:11px;border:1px solid var(--af-line);position:relative;box-shadow:var(--af-shadow)}
@@ -127,6 +131,7 @@ p.hint{font-family:var(--af-font);font-weight:500;font-size:12px;line-height:1.5
 <button id="resetBtn" style="margin-left:auto">Reset to full layout</button>
 </div>
 <div id="board"></div>
+<div id="roleBox"></div>
 <div id="posterCapture"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -147,6 +152,8 @@ var boardRef=db.ref("board");
 var suppressPersist=true;
 function persist(){
 if(suppressPersist)return;
+var roleNames=buckets.filter(function(b){return b.isRole;}).map(function(b){return b.name;});
+console.log("[board] persist at "+new Date().toISOString()+" — role columns: "+JSON.stringify(roleNames));
 boardRef.set({people:people,buckets:buckets});
 }
 </script>
@@ -327,7 +334,12 @@ renderAppView(board);
 persist();
 }
 function renderAppView(board){
-buckets.forEach(function(bucket,bi){
+var roleBox=document.getElementById("roleBox");
+roleBox.innerHTML="";
+var normalBuckets=buckets.filter(function(b){return !b.isRole;});
+var roleBuckets=buckets.filter(function(b){return b.isRole;}).sort(function(a,b2){return a.name.localeCompare(b2.name);});
+normalBuckets.forEach(function(bucket){
+var bi=buckets.indexOf(bucket);
 board.appendChild(renderColumn(bucket,bi,true));
 });
 var addCol=document.createElement("div");
@@ -345,6 +357,19 @@ renderBoard();
 addCol.appendChild(input);
 addCol.appendChild(btn);
 board.appendChild(addCol);
+if(roleBuckets.length){
+var label=document.createElement("div");
+label.className="roleBoxLabel";
+label.textContent="Team roles \u2014 fixed, not reordered";
+roleBox.appendChild(label);
+var roleGrid=document.createElement("div");
+roleGrid.id="roleGrid";
+roleBuckets.forEach(function(bucket){
+var bi=buckets.indexOf(bucket);
+roleGrid.appendChild(renderColumn(bucket,bi,false));
+});
+roleBox.appendChild(roleGrid);
+}
 }
 function renderColumn(bucket,bi,reorderable){
 var col=document.createElement("div");
@@ -392,6 +417,7 @@ roleToggle.title="click to switch between app and role";
 roleToggle.onclick=function(ev){
 ev.stopPropagation();
 bucket.isRole=!bucket.isRole;
+console.log("[board] toggled isRole for \""+bucket.name+"\" -> "+bucket.isRole+" at "+new Date().toISOString());
 renderBoard();
 };
 headerRight.appendChild(roleToggle);
@@ -572,6 +598,8 @@ suppressPersist=true;
 if(val&&val.people&&val.buckets){
 people=val.people;
 buckets=normalize(val.buckets);
+var roleNames=buckets.filter(function(b){return b.isRole;}).map(function(b){return b.name;});
+console.log("[board] received remote update at "+new Date().toISOString()+" — role columns: "+JSON.stringify(roleNames));
 }
 renderPool();
 renderBoard();
