@@ -3,48 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <title>Flexible assignment board</title>
+<link rel="preconnect" href="https://use.typekit.net">
+<link rel="stylesheet" href="https://use.typekit.net/eah5sfj.css">
 <style>
-body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#F5F4F0;margin:0;padding:24px;color:#2C2C2A}
-h1{font-size:18px;font-weight:600;margin:0 0 6px}
-p.hint{font-size:13px;color:#888780;margin:0 0 16px}
-#pool{display:flex;flex-wrap:wrap;gap:6px;background:#fff;border:1px solid #D3D1C7;border-radius:10px;padding:10px;margin-bottom:8px}
-.person{background:#E6F1FB;color:#042C53;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:600;cursor:grab;user-select:none}
-#addPersonRow{display:flex;gap:6px;margin-bottom:16px;align-items:center}
-#addPersonRow input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px;width:160px}
-#addPersonRow button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer;padding:0 10px}
-#board{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;align-items:start}
-.col{background:#EDEBE3;border-radius:12px;padding:10px}
-.col.roleCol{background:#E9E3FB;border:1px solid #C9B8F5}
-.col h3{font-size:14px;font-weight:600;margin:0 0 8px;word-break:break-word;cursor:grab}
-.col.colDragOver{outline:2px dashed #993C1D}
-.subgroup{background:#fff;border:1px solid #D3D1C7;border-radius:8px;padding:6px;margin-bottom:8px}
-.subgroup h4{font-size:11px;font-weight:600;color:#5F5E5A;margin:0 0 6px;text-transform:uppercase}
-.dropzone.dragover{outline:2px dashed #387BFE}
-.chip{background:#F1EFE8;border:1px solid #D3D1C7;border-radius:8px;padding:4px 8px;margin-bottom:6px;font-size:13px}
-.subgroup .chip{background:#fff}
+:root{
+--af-font:"area","Area Normal",-apple-system,"Helvetica Neue",Arial,sans-serif;
+--af-bg:#F3F1F6;
+--af-card:#FAF9FB;
+--af-card-hover:#F3F1F6;
+--af-line:#E6E3EC;
+--af-fg:#090A0F;
+--af-fg-sub:#5C5B5E;
+--af-fg-faint:#8A888E;
+--af-accent:#2256C5;
+--af-accent-soft:#EBF2FF;
+--af-accent-border:#B0CAFF;
+--af-purple:#654B99;
+--af-purple-soft:#F6F2FF;
+--af-purple-border:#DDCBFF;
+--af-teal:#386560;
+--af-teal-soft:#F4FFFE;
+--af-teal-border:#A4FDF4;
+--af-red:#922828;
+--af-red-soft:#FEECEC;
+--af-red-border:#F66969;
+--af-shadow:0 2px 8px rgba(9,10,15,.06);
+--af-radius-card:16px;
+--af-radius-round:999px;
+}
+body{font-family:var(--af-font);background:var(--af-bg);margin:0;padding:32px;color:var(--af-fg)}
+h1{font-family:var(--af-font);font-weight:800;font-size:26px;letter-spacing:-.01em;margin:0 0 8px;color:var(--af-fg)}
+p.hint{font-family:var(--af-font);font-weight:500;font-size:13.5px;line-height:1.6;color:var(--af-fg-sub);margin:0 0 20px;max-width:680px}
+#viewToggleRow button,#addPersonRow button{font-family:var(--af-font);font-size:14px;font-weight:600;height:34px;border-radius:8px;border:1px solid var(--af-line);background:var(--af-card);color:var(--af-fg-sub);cursor:pointer;padding:0 16px;transition:border-color .12s ease,color .12s ease}
+#viewToggleRow button:hover,#addPersonRow button:hover{border-color:var(--af-accent-border);color:var(--af-fg)}
+#viewToggleRow button.active{background:var(--af-accent);color:#fff;border-color:var(--af-accent)}
+#resetBtn{color:var(--af-red)!important;border-color:var(--af-red-border)!important;background:var(--af-red-soft)!important}
+#resetBtn:hover{border-color:var(--af-red)!important}
+#pool{display:flex;flex-wrap:wrap;gap:8px;background:var(--af-card);border:1px solid var(--af-line);border-radius:var(--af-radius-card);padding:16px;margin-bottom:10px}
+.person{font-family:var(--af-font);background:#fff;color:var(--af-fg);border-radius:var(--af-radius-round);padding:6px 14px;font-size:13.5px;font-weight:600;cursor:grab;user-select:none;border:1px solid var(--af-line);transition:border-color .12s ease}
+.person:hover{border-color:var(--af-accent-border)}
+#addPersonRow{display:flex;gap:8px;margin-bottom:22px;align-items:center}
+#addPersonRow input{font-family:var(--af-font);font-size:14px;height:34px;border-radius:var(--af-radius-round);border:1px solid var(--af-line);padding:0 14px;width:170px}
+#board{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;align-items:start}
+.col{background:var(--af-card);border-radius:var(--af-radius-card);padding:16px;border:1px solid var(--af-line);position:relative;box-shadow:var(--af-shadow)}
+.col.roleCol{border-left:3px solid var(--af-purple-border);background:var(--af-purple-soft)}
+.col h3{font-family:var(--af-font);font-size:16px;font-weight:600;margin:0 0 12px;word-break:break-word;cursor:grab;color:var(--af-fg);display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.col.colDragOver{outline:2px solid var(--af-accent);outline-offset:2px}
+.subgroup{background:#fff;border:1px solid var(--af-line);border-radius:10px;padding:10px;margin-bottom:8px}
+.subgroup h4{font-family:var(--af-font);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--af-fg-faint);margin:0 0 8px}
+.dropzone.dragover{outline:2px solid var(--af-teal-border);outline-offset:2px}
+.chip{background:#fff;border:1px solid var(--af-line);border-radius:10px;padding:6px 10px;margin-bottom:7px;font-size:13.5px;font-weight:600}
+.subgroup .chip{background:var(--af-bg)}
 .chip .row{display:flex;justify-content:space-between;align-items:center;gap:4px}
-.chip .role-badge{font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border-radius:8px;padding:1px 6px}
-.chip .role-none{color:#888780;background:#F1EFE8}
-.chip .role-lead{color:#412402;background:#FAEEDA}
-.chip .role-backup{color:#042C53;background:#E6F1FB}
-.chip .x{cursor:pointer;color:#888780;font-weight:700;padding:0 2px}
-.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.tag{background:#FAEEDA;color:#412402;border-radius:8px;padding:1px 6px;font-size:11px;display:flex;align-items:center;gap:3px}
-.tag .x{color:#412402;font-size:11px}
-.tagInput{font-size:11px;height:22px;border-radius:6px;border:1px solid #D3D1C7;padding:0 6px;width:100%;margin-top:4px;box-sizing:border-box}
-.colremove{float:right;cursor:pointer;color:#888780;font-size:13px}
-#viewToggleRow button.active{background:#387BFE;color:#fff;border-color:#387BFE}
-.personCard{background:#fff;border-radius:12px;padding:10px;border:1px solid #D3D1C7}
-.personCard h3{font-size:14px;font-weight:600;margin:0 0 8px}
-.personCard .assign{background:#F1EFE8;border-radius:8px;padding:4px 8px;margin-bottom:6px;font-size:12px}
-.personCard .assign .sub{color:#5F5E5A}
-.personCard .assign .badge{font-size:10px;font-weight:600;border-radius:6px;padding:0 5px;margin-left:4px}
-.personCard .assign .badge.lead{background:#FAEEDA;color:#412402}
-.personCard .assign .badge.backup{background:#E6F1FB;color:#042C53}
-.personCard .empty{font-size:12px;color:#888780;font-style:italic}
+.chip .role-badge{font-family:var(--af-font);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;border-radius:var(--af-radius-round);padding:2px 10px}
+.chip .role-none{color:var(--af-fg-faint);background:var(--af-bg)}
+.chip .role-lead{color:var(--af-accent);background:var(--af-accent-soft)}
+.chip .role-backup{color:var(--af-purple);background:var(--af-purple-soft)}
+.chip .x{cursor:pointer;color:var(--af-fg-faint);font-weight:700;padding:0 2px}
+.chip .x:hover{color:var(--af-red)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag{font-family:var(--af-font);background:var(--af-teal-soft);color:var(--af-teal);border-radius:var(--af-radius-round);padding:2px 9px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px}
+.tag .x{color:var(--af-teal);font-size:11px}
+.tagInput{font-family:var(--af-font);font-size:11px;height:26px;border-radius:var(--af-radius-round);border:1px solid var(--af-line);padding:0 10px;width:100%;margin-top:6px;box-sizing:border-box}
+.colremove{cursor:pointer;color:var(--af-fg-faint);font-size:16px;line-height:1}
+.colremove:hover{color:var(--af-red)}
+.personCard{background:var(--af-card);border-radius:var(--af-radius-card);padding:16px;border:1px solid var(--af-line);box-shadow:var(--af-shadow)}
+.personCard h3{font-family:var(--af-font);font-size:16px;font-weight:600;margin:0 0 12px;color:var(--af-fg)}
+.personCard .assign{background:#fff;border:1px solid var(--af-line);border-radius:10px;padding:6px 10px;margin-bottom:7px;font-size:12.5px;font-weight:600;color:var(--af-fg-sub)}
+.personCard .assign .sub{color:var(--af-fg-faint);font-weight:500}
+.personCard .assign .badge{font-family:var(--af-font);font-size:10px;font-weight:700;border-radius:var(--af-radius-round);padding:1px 8px;margin-left:4px}
+.personCard .assign .badge.lead{background:var(--af-accent-soft);color:var(--af-accent)}
+.personCard .assign .badge.backup{background:var(--af-purple-soft);color:var(--af-purple)}
+.personCard .empty{font-family:var(--af-font);font-size:12.5px;color:var(--af-fg-faint);font-style:italic}
 #addBucket{display:flex;flex-direction:column;gap:6px}
-#addBucket input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px}
-#addBucket button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer}
+#addBucket input{font-family:var(--af-font);font-size:14px;height:34px;border-radius:var(--af-radius-round);border:1px solid var(--af-line);padding:0 14px}
+#addBucket button{font-family:var(--af-font);font-size:14px;font-weight:600;height:34px;border-radius:8px;border:1px dashed var(--af-line);background:transparent;color:var(--af-fg-sub);cursor:pointer}
+#addBucket button:hover{border-color:var(--af-accent-border);color:var(--af-accent)}
 </style>
 </head>
 <body>
@@ -277,7 +311,7 @@ nameSpan.onclick=function(ev){
 ev.stopPropagation();
 var input=document.createElement("input");
 input.value=bucket.name;
-input.style.cssText="font-size:14px;font-weight:600;width:100%;border:1px solid #B4B2A9;border-radius:6px;padding:2px 4px;box-sizing:border-box";
+input.style.cssText="font-family:var(--af-font);font-size:15px;font-weight:600;width:100%;border:1px solid #B0CAFF;border-radius:8px;padding:2px 6px;box-sizing:border-box;color:#090A0F";
 input.draggable=false;
 function commit(){
 if(input.value.trim())bucket.name=input.value.trim();
