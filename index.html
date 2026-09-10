@@ -33,6 +33,15 @@ p.hint{font-size:13px;color:#888780;margin:0 0 16px}
 .tag .x{color:#412402;font-size:11px}
 .tagInput{font-size:11px;height:22px;border-radius:6px;border:1px solid #D3D1C7;padding:0 6px;width:100%;margin-top:4px;box-sizing:border-box}
 .colremove{float:right;cursor:pointer;color:#888780;font-size:13px}
+#viewToggleRow button.active{background:#387BFE;color:#fff;border-color:#387BFE}
+.personCard{background:#fff;border-radius:12px;padding:10px;border:1px solid #D3D1C7}
+.personCard h3{font-size:14px;font-weight:600;margin:0 0 8px}
+.personCard .assign{background:#F1EFE8;border-radius:8px;padding:4px 8px;margin-bottom:6px;font-size:12px}
+.personCard .assign .sub{color:#5F5E5A}
+.personCard .assign .badge{font-size:10px;font-weight:600;border-radius:6px;padding:0 5px;margin-left:4px}
+.personCard .assign .badge.lead{background:#FAEEDA;color:#412402}
+.personCard .assign .badge.backup{background:#E6F1FB;color:#042C53}
+.personCard .empty{font-size:12px;color:#888780;font-style:italic}
 #addBucket{display:flex;flex-direction:column;gap:6px}
 #addBucket input{font-size:13px;height:30px;border-radius:8px;border:1px solid #D3D1C7;padding:0 8px}
 #addBucket button{font-size:13px;height:30px;border-radius:8px;border:1px solid #B4B2A9;background:#fff;cursor:pointer}
@@ -41,6 +50,10 @@ p.hint{font-size:13px;color:#888780;margin:0 0 16px}
 <body>
 <h1>Flexible assignment board</h1>
 <p class="hint">Live synced — changes you or Mark make appear for both of you within a second or two. Drag a person from the pool into any box (they stay in the pool, so the same person can go into several apps or subcategories). Drag a column's title to reorder columns. Click the gray "set role" badge to cycle none to lead to backup. In Innovate team, type an app name and hit enter to tag what each person writes for.</p>
+<div id="viewToggleRow" style="margin-bottom:10px;display:flex;gap:6px">
+<button id="viewAppsBtn">By app</button>
+<button id="viewPeopleBtn">By person</button>
+</div>
 <div id="pool"></div>
 <div id="addPersonRow">
 <input id="newPersonInput" placeholder="add a person">
@@ -116,6 +129,7 @@ return bks;
 }
 buckets=normalize(buckets);
 var defaultPeople=people.slice();
+var viewMode="apps";
 var defaultBuckets=JSON.parse(JSON.stringify(buckets));
 function renderPool(){
 var pool=document.getElementById("pool");
@@ -236,6 +250,14 @@ if(!exists){list.push({name:name,role:null,apps:[]});renderBoard();}
 function renderBoard(){
 var board=document.getElementById("board");
 board.innerHTML="";
+if(viewMode==="people"){
+renderPersonView(board);
+}else{
+renderAppView(board);
+}
+persist();
+}
+function renderAppView(board){
 buckets.forEach(function(bucket,bi){
 var col=document.createElement("div");
 col.className="col dropzone"+(bucket.isRole?" roleCol":"");
@@ -312,8 +334,60 @@ renderBoard();
 addCol.appendChild(input);
 addCol.appendChild(btn);
 board.appendChild(addCol);
-persist();
 }
+function renderPersonView(board){
+people.forEach(function(name){
+var card=document.createElement("div");
+card.className="personCard";
+var h=document.createElement("h3");
+h.textContent=name;
+card.appendChild(h);
+var assignments=[];
+buckets.forEach(function(bucket){
+bucket.subs.forEach(function(group){
+(group.people||[]).forEach(function(p){
+if(p.name===name){
+assignments.push({bucketName:bucket.name,sub:group.sub,role:p.role,apps:p.apps||[]});
+}
+});
+});
+});
+if(assignments.length===0){
+var empty=document.createElement("p");
+empty.className="empty";
+empty.textContent="No assignments yet";
+card.appendChild(empty);
+}else{
+assignments.forEach(function(a){
+var row=document.createElement("div");
+row.className="assign";
+var label=a.bucketName;
+if(a.sub)label+=" — "+a.sub;
+row.textContent=label;
+if(a.role){
+var badge=document.createElement("span");
+badge.className="badge "+a.role;
+badge.textContent=a.role;
+row.appendChild(badge);
+}
+if(a.apps.length){
+var sub=document.createElement("div");
+sub.className="sub";
+sub.textContent=a.apps.join(", ");
+row.appendChild(sub);
+}
+card.appendChild(row);
+});
+}
+board.appendChild(card);
+});
+}
+function updateViewButtons(){
+document.getElementById("viewAppsBtn").className=viewMode==="apps"?"active":"";
+document.getElementById("viewPeopleBtn").className=viewMode==="people"?"active":"";
+}
+document.getElementById("viewAppsBtn").onclick=function(){viewMode="apps";updateViewButtons();renderBoard();};
+document.getElementById("viewPeopleBtn").onclick=function(){viewMode="people";updateViewButtons();renderBoard();};
 document.getElementById("addPersonBtn").onclick=function(){
 var input=document.getElementById("newPersonInput");
 if(input.value.trim()){
@@ -331,6 +405,7 @@ renderPool();
 renderBoard();
 };
 renderPool();
+updateViewButtons();
 renderBoard();
 boardRef.on("value",function(snapshot){
 var val=snapshot.val();
